@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import * as compression from 'compression';
 
@@ -31,7 +31,7 @@ async function bootstrap() {
       return compression.filter(req, res);
     },
   }));
-
+  app.useGlobalPipes(new ValidationPipe());
   app.use((req, res, next) => {
     logger.log(`${req.method} ${req.originalUrl}`);
     next();

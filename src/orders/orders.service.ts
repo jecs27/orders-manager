@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { KafkaService } from '../kafka/kafka.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { Order } from './schemas/order.schema';
 
 @Injectable()
 export class OrdersService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(
+    @InjectModel(Order.name) private readonly orderModel: Model<Order>,
+    private readonly kafkaService: KafkaService,
+  ) {}
+
+  async createOrder(dto: CreateOrderDto) {
+    if (!dto.items || dto.items.length === 0) {
+      throw new BadRequestException('La orden debe contener al menos un ítem');
+    }
+
+    const total = dto.items.reduce((acc, item) => {
+      return acc + item.cantidad * item.precio_unitario;
+    }, 0);
+
+    const createdOrder = new this.orderModel({
+      ...dto,
+      total,
+    });
+
+    const savedOrder = await createdOrder.save();
+    await this.kafkaService.emit(savedOrder, 'ordenes_creadas');
+
+    return savedOrder;
   }
 
-  findAll() {
-    return `This action returns all orders`;
-  }
+  async listOrders(page = 1, limit = 10, id_usuario?: string) {
+    const query: any = {};
+    if (id_usuario) query.id_usuario = id_usuario;
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
-  }
+    const orders = await this.orderModel
+      .find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+    return orders;
   }
 }

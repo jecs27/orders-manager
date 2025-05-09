@@ -19,7 +19,7 @@ import { KafkaService } from './kafka/kafka.service';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const uri = configService.get<string>('mongo.uri');
-        console.log('Conectando a MongoDB en:', uri);
+        console.log('Conectando a MongoDB');
         return {
           uri,
         };

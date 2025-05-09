@@ -22,8 +22,13 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async emit(message: any, topicOverride?: string) {
+    const topic = topicOverride || this.topic;
+    if (!topic || typeof topic !== 'string') {
+      throw new Error(`Invalid Kafka topic: ${topic}`);
+    }
+  
     await this.producer.send({
-      topic: topicOverride || this.topic,
+      topic,
       messages: [{ value: JSON.stringify(message) }],
     });
   }
