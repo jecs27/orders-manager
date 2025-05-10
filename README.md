@@ -1,48 +1,178 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## Order Manager
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+### 1. Environment Setup
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+First, create a `.env` file in the root directory based on the following template:
+
+```env
+# App
+PORT=3000
+
+# MongoDB
+MONGODB_URI=mongodb://root:example@localhost:27017/ordenes?authSource=admin
+
+# Kafka
+KAFKA_BROKER=host.docker.internal:9092
+KAFKA_CLIENT_ID=ordenes-service
+KAFKA_TOPIC_ORDENES_CREADAS=ordenes_creadas
+```
+
+### 2. Start Infrastructure with Docker Compose
+
+The application requires several services to run properly. Start them using Docker Compose:
+
+```bash
+# Start all required services (MongoDB, Redis, and Kafka)
+docker-compose up -d
+```
+
+This will start:
+- MongoDB on port 27017
+- Redis on port 6379
+- Kafka on port 9092
+
+### 3. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 4. Run the Application
+
+```bash
+# development
+pnpm run start
+
+# watch mode
+pnpm run start:dev
+
+# production mode
+pnpm run start:prod
+```
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph Client
+        API[API Client]
+    end
+
+    subgraph Order Manager Service
+        App[NestJS Application]
+        API --> App
+    end
+
+    subgraph Infrastructure
+        subgraph Database
+            MongoDB[(MongoDB)]
+            Redis[(Redis Cache)]
+        end
+
+        subgraph Message Broker
+            Kafka[Kafka Broker]
+        end
+    end
+
+    App --> MongoDB
+    App --> Redis
+    App --> Kafka
+
+    style App fill:#f9f,stroke:#333,stroke-width:2px
+    style MongoDB fill:#85C1E9,stroke:#333,stroke-width:2px
+    style Redis fill:#FF6B6B,stroke:#333,stroke-width:2px
+    style Kafka fill:#98FB98,stroke:#333,stroke-width:2px
+```
+
+### Components Description
+
+- **NestJS Application**: The main application server handling HTTP requests and business logic
+- **MongoDB**: Primary database for storing order data
+- **Redis**: In-memory cache for improving performance
+- **Kafka**: Message broker for handling asynchronous events and communication between services
+
+## Project Structure
+
+```
+src/
+├── app.module.ts              # Main application module
+├── main.ts                    # Application entry point
+├── config/                    # Configuration files
+│   └── config.ts              # Configuration
+├── kafka/                     # Kafka integration
+│   └── kafka.service.ts       # Kafka service implementation
+├── redis/                     # Redis integration
+│   └── redis.service.ts       # Redis service implementation
+├── orders/                    # Orders module
+│   ├── orders.module.ts       # Orders module definition
+│   ├── orders.controller.ts   # Orders REST endpoints
+│   ├── orders.service.ts      # Orders business logic
+│   ├── dto/                   # Data Transfer Objects
+│   │   └── create-order.dto.ts # Order creation DTO
+│   ├── schemas/               # Database schemas
+│   │   └── order.schema.ts    # Order MongoDB schema
+│   └── interfaces/            # TypeScript interfaces
+│       └── order.interface.ts # Order interface definition
+.env                           # Environment variables
+```
+
+### Key Components
+
+- **app.module.ts**: Root module that bootstraps the application
+- **main.ts**: Application entry point with server configuration
+- **config/**: Contains configuration files for external services
+- **kafka/**: Handles message broker integration
+- **redis/**: Optional caching layer implementation
+- **orders/**: Core business logic for order management
+  - **dto/**: Data validation and transfer objects
+  - **schemas/**: MongoDB schema definitions
+  - **interfaces/**: TypeScript type definitions
+
+## Docker
+
+### Building and Running the Application
+
+1. Build the application:
+```bash
+# Build the Docker image
+docker build -t order-manager .
+```
+
+2. Run the application:
+```bash
+# Run the container exposing port 3000
+docker run -d \
+  --name order-manager \
+  -p 3000:3000 \
+  --network app-network \
+  order-manager
+```
+
+3. Verify the application is running:
+```bash
+# Check container status
+docker ps
+
+# View application logs
+docker logs -f order-manager
+```
+
+4. Access the application:
+- The API will be available at `http://localhost:3000`
+- Health check endpoint: `http://localhost:3000/health`
+
+5. Stop the application:
+```bash
+# Stop the container
+docker stop order-manager
+
+# Remove the container
+docker rm order-manager
+```
 
 ## Description
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ pnpm install
-```
-
-## Compile and run the project
-
-```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
-```
 
 ## Run tests
 
@@ -67,31 +197,6 @@ If you are looking for a cloud-based platform to deploy your NestJS application,
 $ pnpm install -g @nestjs/mau
 $ mau deploy
 ```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
 ## License
 
