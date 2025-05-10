@@ -128,6 +128,41 @@ src/
   - **schemas/**: MongoDB schema definitions
   - **interfaces/**: TypeScript type definitions
 
+## API Documentation
+
+The API provides the following endpoints:
+
+### Create Order
+- **Method**: POST
+- **Endpoint**: `/orders`
+- **Body**:
+```json
+{
+    "id_usuario": "1234",
+    "items": [
+        {
+            "id_producto": "ac-01238",
+            "cantidad": 30,
+            "precio_unitario": 10.25
+        }
+    ]
+}
+```
+
+### Get All Orders
+- **Method**: GET
+- **Endpoint**: `/orders`
+- **Query Parameters**:
+  - `limit`: Number of records per page (default: 10)
+  - `page`: Page number for pagination
+  - `id_usuario`: Filter orders by user ID
+- **Example**: `/orders?limit=1&page=2&id_usuario=1235`
+
+### Health Check
+- **Method**: GET
+- **Endpoint**: `/`
+- **Purpose**: Verify if the service is running properly
+
 ## Docker
 
 ### Building and Running the Application
