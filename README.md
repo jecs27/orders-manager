@@ -236,3 +236,13 @@ $ mau deploy
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## 🚀 Nice to Have / Future Improvements
+These features are not currently implemented but would significantly enhance the system if added:
+| Feature             | Description                                           | Status     |
+| ------------------- | ----------------------------------------------------- | ---------- |
+| Authentication      | Validate users via JWT authentication                 | 🔜 Pending |
+| Roles & Permissions | Support for user roles like `admin`, `user`, `seller` | 🔜 Pending |
+| User Management     | User registration, login, profile update, etc.        | 🔜 Pending |
+| Product Module      | Manage product catalog and associate with orders      | 🔜 Pending |
+| Inventory System    | Track product stock and availability before ordering  | 🔜 Pending |
