@@ -1,0 +1,96 @@
+{
+	"info": {
+		"_postman_id": "de821bf5-de65-401b-a394-4d98a45dbc1f",
+		"name": "Global Mobility",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6486894"
+	},
+	"item": [
+		{
+			"name": "create orders",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id_usuario\": \"1234\",\n    \"items\": [\n        {\n            \"id_producto\": \"ac-01238\",\n            \"cantidad\": 30,\n            \"precio_unitario\": 10.25\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/orders",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all orders",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id_usuario\": \"1234\",\n    \"items\": [\n        {\n            \"id_producto\": \"ac-01238\",\n            \"cantidad\": 30,\n            \"precio_unitario\": 10.25\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/orders?limit=1&page=2&id_usuario=1235",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"orders"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "1"
+						},
+						{
+							"key": "page",
+							"value": "2"
+						},
+						{
+							"key": "id_usuario",
+							"value": "1235"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "HealthCheck",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
